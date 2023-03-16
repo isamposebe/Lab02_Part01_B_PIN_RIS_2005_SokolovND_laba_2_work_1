@@ -1,11 +1,13 @@
 import math
 import matplotlib.pyplot as plt
 
+
 def plot_func(f, interval):
     x_vals = [i/10 for i in range(-100, 101)]
     y_vals = [f(x) for x in x_vals]
     plt.plot(x_vals, y_vals)
     plt.xlim(interval[0], interval[1])
+    plt.ylim(min(y_vals), max(y_vals))
     plt.xlabel('x')
     plt.ylabel('f(x)')
     plt.show()
@@ -16,10 +18,8 @@ def find_extremum(f, interval):
     min_arg = interval[0]
     max_arg = interval[0]
 
-    x_vals = [i/10 for i in range(-100, 101)]
+    x_vals = [i/10 for i in range(int(interval[0]*10), int(interval[1]*10) + 1)]
     for x in x_vals:
-        if x < interval[0] or x > interval[1]:
-            continue
         y = f(x)
         if y < min_val:
             min_val = y
@@ -28,25 +28,30 @@ def find_extremum(f, interval):
             max_val = y
             max_arg = x
 
+
     return (min_val, min_arg), (max_val, max_arg)
 
-def golden_section_minimize(f, a, b, tol=1e-6):
-    phi = (1 + math.sqrt(5)) / 2 # Константа "золотого сечения"
+def golden_section_minimize(f, a, b, tol):
+
+    phi = (1 + math.sqrt(5)) / 2  # Константа "золотого сечения"
     c = b - (b - a) / phi
     d = a + (b - a) / phi
+    n_iter = 0  # Переменная для подсчета итераций
 
     while abs(c - d) > tol:
+        n_iter += 1
         if f(c) < f(d):
             b = d
         else:
             a = c
-
         c = b - (b - a) / phi
         d = a + (b - a) / phi
 
-    return (c + d) / 2
+    x_min = (c + d) / 2  # Найденный минимум функции
+    return x_min, n_iter
 
-def dichotomy_minimize(f, a, b, tol=1e-6):
+def dichotomy_minimize(f, a, b, tol):
+    iter_count = 0
     while abs(b - a) > tol:
         c = (a + b) / 2
         d = (a + c) / 2
@@ -54,16 +59,7 @@ def dichotomy_minimize(f, a, b, tol=1e-6):
             b = c
         else:
             a = d
-    return (a + b) / 2
+        iter_count += 1
+    return (a + b) / 2, iter_count
 
-def minimize(f, interval, method='golden', tol=1e-6):
-    if method == 'golden':
-        return golden_section_minimize(f, interval[0], interval[1], tol)
-    elif method == 'dichotomy':
-        return dichotomy_minimize(f, interval[0], interval[1], tol)
-    else:
-        raise ValueError(f"Unsupported optimization method: {method}")
 
-def find_min(f, interval, method='golden', tol=1e-6):
-    x_min = minimize(f, interval, method, tol)
-    return (x_min, f(x_min))
